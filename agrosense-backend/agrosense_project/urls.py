@@ -1,6 +1,7 @@
 from django.contrib import admin
 from django.urls import path, include
-from rest_framework import routers
+# Importación correcta de DefaultRouter
+from rest_framework.routers import DefaultRouter 
 from accounts.views import UserViewSet
 from plans.views import PlanViewSet
 from telemetry.views import DeviceViewSet, TelemetryViewSet
@@ -8,12 +9,13 @@ from parcels.views import ParcelViewSet
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 
 # Registramos los routers
-router = routers.DefaultRouter()
+router = DefaultRouter() # Usamos DefaultRouter importado
 router.register(r'users', UserViewSet)
 router.register(r'plans', PlanViewSet)
 router.register(r'devices', DeviceViewSet)
 router.register(r'telemetry', TelemetryViewSet)
-router.register(r'parcels', ParcelViewSet)
+# Aplicamos el basename 'parcel' al registro existente de Parcels
+router.register(r'parcels', ParcelViewSet, basename='parcel') 
 
 # urlpatterns única
 urlpatterns = [

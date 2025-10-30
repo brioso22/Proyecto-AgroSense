@@ -1,23 +1,33 @@
 from django.db import models
 from django.conf import settings
-# Si más adelante quieres usar mapas con GeoDjango, se importa así:
-# from django.contrib.gis.db import models as gis_models
 
 class Parcel(models.Model):
-    """
-    Modelo que representa una parcela de cultivo de un usuario.
-    Si no usas GeoDjango, almacena latitud y longitud como floats.
-    """
-    user = models.ForeignKey(
+    user = models.OneToOneField(
         settings.AUTH_USER_MODEL, 
         on_delete=models.CASCADE,
-        related_name='parcels'
+        related_name='parcel'
     )
+    # Información básica de la parcela
     name = models.CharField(max_length=100)
     latitude = models.FloatField()
     longitude = models.FloatField()
-    created_at = models.DateTimeField(auto_now_add=True)  # opcional: saber cuándo se creó
+
+    # Cultivo
+    crop_name = models.CharField(max_length=100)
+    sowing_date = models.DateField()
+    expected_harvest_date = models.DateField()
+
+    # Datos de sensores / automatización
+    irrigation_count = models.PositiveIntegerField(default=0)
+    soil_ph = models.FloatField(null=True, blank=True)
+    ambient_temperature = models.FloatField(null=True, blank=True)
+    humidity = models.FloatField(null=True, blank=True)
+
+    # Datos del clima
+    weather_info = models.JSONField(blank=True, null=True, help_text="Datos de clima: lluvia, temperatura, etc.")
+
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
 
     def __str__(self):
-        return f"{self.name} ({self.latitude}, {self.longitude})"
-
+        return f"{self.name} ({self.crop_name}) - {self.user.username}"

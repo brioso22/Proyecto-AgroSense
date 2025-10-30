@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import api from '../api';
 import { useNavigate } from 'react-router-dom';
@@ -66,10 +65,15 @@ export default function Login() {
         setShowPassword(false);
         setShowConfirmPassword(false);
       } else {
+        // Ejemplo: función de login
         const res = await api.post('token/', { username, password });
-        localStorage.setItem('access_token', res.data.access);
-        localStorage.setItem('refresh_token', res.data.refresh);
-        navigate('/dashboard');
+        
+        const token = res.data.access;
+        // Guardar el token en localStorage con la clave 'authToken'
+        localStorage.setItem('authToken', token);
+
+        console.log('Token guardado ✅');
+        navigate('/home');
       }
     } catch (err) {
       if (err.response && err.response.data.username) {
