@@ -4,8 +4,8 @@ import time
 from datetime import date, timedelta
 
 # Usuario y contraseña
-USERNAME = "yesy"
-PASSWORD = "Yesy_Hermosa1999"
+USERNAME = "marcos1"
+PASSWORD = "Osint-258133"
 
 # Endpoints
 TOKEN_URL = "http://127.0.0.1:8000/api/token/"

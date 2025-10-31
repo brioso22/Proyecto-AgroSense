@@ -6,6 +6,7 @@ import Home from './components/Home';
 import PerfilUsuario from './components/PerfilUsuario';
 import Mapa from './components/Mapa';
 import Logout from './components/Logout';
+import Plans from './components/Plans';
 
 
 function App() {
@@ -50,6 +51,14 @@ function App() {
           element={
             <ProtectedRoute>
               <Mapa />
+            </ProtectedRoute>
+          } 
+        />
+        <Route 
+          path="/Plans" 
+          element={
+            <ProtectedRoute>
+              <Plans />
             </ProtectedRoute>
           } 
         />
