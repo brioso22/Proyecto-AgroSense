@@ -29,7 +29,7 @@ export default function Home() {
             <nav className="navbar navbar-expand-lg navbar-light bg-white shadow-sm sticky-top">
                 <div className="container"> 
                     {/* Contenido de la marca y logo */}
-                    <Link className="navbar-brand d-flex align-items-center" to="/">
+                    <Link className="navbar-brand d-flex align-items-center" to="/home">
                         <img src={logo} alt="AgroSense Logo" style={{ height: '30px', marginRight: '8px' }} />
                         <span className="fw-bold text-success">AgroSense</span>
                     </Link>

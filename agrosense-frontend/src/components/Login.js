@@ -8,6 +8,10 @@ export default function Login() {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
+  const [firstName, setFirstName] = useState('');
+  const [lastName, setLastName] = useState('');
+  const [email, setEmail] = useState('');
+  const [zone, setZone] = useState('');
   const [acceptedTerms, setAcceptedTerms] = useState(false);
   const [error, setError] = useState('');
   const [isRegister, setIsRegister] = useState(false);
@@ -35,6 +39,10 @@ export default function Login() {
       confirmPassword &&
       password === confirmPassword &&
       validatePassword(password) &&
+      firstName &&
+      lastName &&
+      email &&
+      zone &&
       acceptedTerms
     : username && password;
 
@@ -55,23 +63,31 @@ export default function Login() {
           setError('❌ Debes aceptar los términos y condiciones.');
           return;
         }
-        await api.post('users/', { username, password });
+        await api.post('users/', {
+          username,
+          password,
+          first_name: firstName,
+          last_name: lastName,
+          email,
+          zone,
+        });
         setError('✅ Usuario creado correctamente. Ahora inicia sesión.');
         setIsRegister(false);
         setUsername('');
         setPassword('');
         setConfirmPassword('');
+        setFirstName('');
+        setLastName('');
+        setEmail('');
+        setZone('');
         setAcceptedTerms(false);
         setShowPassword(false);
         setShowConfirmPassword(false);
       } else {
         // Ejemplo: función de login
         const res = await api.post('token/', { username, password });
-        
         const token = res.data.access;
-        // Guardar el token en localStorage con la clave 'authToken'
         localStorage.setItem('authToken', token);
-
         console.log('Token guardado ✅');
         navigate('/home');
       }
@@ -89,17 +105,11 @@ export default function Login() {
   return (
     <div
       className="d-flex align-items-center justify-content-center vh-100"
-      style={{
-        background: 'linear-gradient(135deg, #e8f5e9, #c8e6c9)',
-      }}
+      style={{ background: 'linear-gradient(135deg, #e8f5e9, #c8e6c9)' }}
     >
       <div className="card shadow-lg border-0 p-4 rounded-4" style={{ maxWidth: '400px', width: '100%' }}>
         <div className="text-center mb-3">
-          <img
-            src="/logo.png"
-            alt="AgroSense"
-            style={{ width: '90px', height: '90px' }}
-          />
+          <img src="/logo.png" alt="AgroSense" style={{ width: '90px', height: '90px' }} />
           <h3 className="mt-2" style={{ color: '#2E7D32', fontWeight: '700' }}>
             Agro<span style={{ color: '#4CAF50' }}>Sense</span>
           </h3>
@@ -121,7 +131,56 @@ export default function Login() {
             />
           </div>
 
-          {/* Campo de contraseña con ícono 👁️ */}
+          {isRegister && (
+            <>
+              <div className="mb-3">
+                <input
+                  type="text"
+                  className="form-control rounded-pill"
+                  placeholder="Nombre"
+                  value={firstName}
+                  onChange={(e) => setFirstName(e.target.value)}
+                  required
+                  style={{ backgroundColor: '#f1f8e9' }}
+                />
+              </div>
+              <div className="mb-3">
+                <input
+                  type="text"
+                  className="form-control rounded-pill"
+                  placeholder="Apellido"
+                  value={lastName}
+                  onChange={(e) => setLastName(e.target.value)}
+                  required
+                  style={{ backgroundColor: '#f1f8e9' }}
+                />
+              </div>
+              <div className="mb-3">
+                <input
+                  type="email"
+                  className="form-control rounded-pill"
+                  placeholder="Correo electrónico"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  required
+                  style={{ backgroundColor: '#f1f8e9' }}
+                />
+              </div>
+              <div className="mb-3">
+                <input
+                  type="text"
+                  className="form-control rounded-pill"
+                  placeholder="Zona"
+                  value={zone}
+                  onChange={(e) => setZone(e.target.value)}
+                  required
+                  style={{ backgroundColor: '#f1f8e9' }}
+                />
+              </div>
+            </>
+          )}
+
+          {/* Contraseña */}
           <div className="mb-3">
             <div className="input-group">
               <input
@@ -157,7 +216,6 @@ export default function Login() {
             )}
           </div>
 
-          {/* Campo de confirmación de contraseña 👁️ */}
           {isRegister && (
             <>
               <div className="mb-3">
@@ -194,20 +252,6 @@ export default function Login() {
                 <label className="form-check-label" htmlFor="termsCheck">
                   Acepto los términos y condiciones
                 </label>
-              </div>
-
-              <div className="mb-3 text-center">
-                <small>
-                  Al presionar{' '}
-                  <a
-                    href="#"
-                    onClick={(e) => e.preventDefault()}
-                    style={{ color: '#2E7D32', textDecoration: 'underline' }}
-                  >
-                    aquí
-                  </a>
-                  , aceptas nuestros términos y condiciones.
-                </small>
               </div>
             </>
           )}

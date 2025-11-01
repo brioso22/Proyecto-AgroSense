@@ -7,13 +7,14 @@ import PerfilUsuario from './components/PerfilUsuario';
 import Mapa from './components/Mapa';
 import Logout from './components/Logout';
 import Plans from './components/Plans';
-
+import ChatFAQSupport from './components/ChatFAQSupport';
 
 function App() {
   return (
     <BrowserRouter>
       <Routes>
         <Route path="/" element={<Login />} />
+        
         <Route 
           path="/Dashboard" 
           element={
@@ -22,6 +23,7 @@ function App() {
             </ProtectedRoute>
           } 
         />
+        
         <Route 
           path="/Home" 
           element={
@@ -30,6 +32,7 @@ function App() {
             </ProtectedRoute>
           } 
         />
+        
         <Route 
           path="/Logout" 
           element={
@@ -38,6 +41,7 @@ function App() {
             </ProtectedRoute>
           } 
         />
+        
         <Route 
           path="/Perfil" 
           element={
@@ -46,6 +50,7 @@ function App() {
             </ProtectedRoute>
           } 
         />
+        
         <Route 
           path="/Mapa" 
           element={
@@ -54,6 +59,7 @@ function App() {
             </ProtectedRoute>
           } 
         />
+        
         <Route 
           path="/Plans" 
           element={
@@ -62,10 +68,21 @@ function App() {
             </ProtectedRoute>
           } 
         />
+
+        {/* Nueva ruta de chat de soporte */}
+
+        <Route 
+          path="/ChatFAQSupport" 
+          element={
+            <ProtectedRoute>
+              <ChatFAQSupport />
+            </ProtectedRoute>
+          } 
+        />
       </Routes>
+      
     </BrowserRouter>
   );
 }
-
 
 export default App;
