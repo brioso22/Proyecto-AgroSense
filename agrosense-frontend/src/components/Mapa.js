@@ -42,6 +42,17 @@ export default function Mapa() {
   const [showPanel, setShowPanel] = useState(false); // Panel lateral para información
   const [searchQuery, setSearchQuery] = useState(''); // Búsqueda de lugares
   const [filteredMarkers, setFilteredMarkers] = useState([]); // Marcadores filtrados
+  const [isMobile, setIsMobile] = useState(false); // Estado para detectar móvil
+
+  // Detectar si es móvil basado en el ancho de la ventana
+  useEffect(() => {
+    const handleResize = () => {
+      setIsMobile(window.innerWidth < 768);
+    };
+    handleResize(); // Inicial
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
 
   // Datos simulados de parcelas (puedes conectar con API real)
   const parcelas = [
@@ -93,21 +104,21 @@ export default function Mapa() {
   return (
     <MapErrorBoundary>
       <div className="container-fluid p-0" style={{ height: '100vh', overflow: 'hidden', backgroundColor: '#f8f9fa' }}>
-        {/* Controles superiores mejorados */}
-        <div className="d-flex justify-content-between align-items-center p-3 bg-white shadow-sm border-bottom">
+        {/* Controles superiores mejorados y responsivos */}
+        <div className="d-flex justify-content-between align-items-center p-2 p-md-3 bg-white shadow-sm border-bottom flex-wrap">
           <Link to="/home" style={{ textDecoration: 'none', display: 'flex', alignItems: 'center' }}>
             <img src={logo} alt="AgroSense" width="40" height="40" className="me-2 rounded" />
-            <h4 className="mb-0 text-success fw-bold" style={{ cursor: 'pointer' }}>Mapa Interactivo - AgroSense 🌍</h4>
+            <h4 className="mb-0 text-success fw-bold" style={{ cursor: 'pointer', fontSize: isMobile ? '1.2rem' : '1.5rem' }}>Mapa Interactivo - AgroSense 🌍</h4>
           </Link>
-          <div className="d-flex gap-2 align-items-center">
+          <div className="d-flex gap-2 align-items-center flex-wrap">
             <input
               type="text"
               className="form-control form-control-sm"
               placeholder="Buscar parcela..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              onKeyPress={(e) => e.key === 'Enter' && handleSearch()}
-              style={{ width: '150px' }}
+              onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
+              style={{ width: isMobile ? '120px' : '150px' }}
             />
             <button className="btn btn-outline-primary btn-sm" onClick={handleSearch}>
               🔍
@@ -133,11 +144,23 @@ export default function Mapa() {
           </div>
         </div>
 
-        {/* Contenedor del mapa y panel lateral */}
-        <div className="d-flex" style={{ height: 'calc(100vh - 80px)' }}>
-          {/* Panel lateral */}
+        {/* Contenedor del mapa y panel lateral responsivo */}
+        <div className="position-relative" style={{ height: 'calc(100vh - 80px)' }}>
+          {/* Panel lateral responsivo (drawer en móvil) */}
           {showPanel && (
-            <div className="bg-white shadow p-3" style={{ width: '300px', overflowY: 'auto' }}>
+            <div
+              className="bg-white shadow p-3"
+              style={{
+                width: isMobile ? '100%' : '300px',
+                position: isMobile ? 'absolute' : 'relative',
+                left: isMobile ? (showPanel ? '0' : '-100%') : 'auto',
+                top: 0,
+                height: '100%',
+                overflowY: 'auto',
+                zIndex: 1000,
+                transition: 'left 0.3s ease-in-out'
+              }}
+            >
               <h5 className="text-success fw-bold">📊 Información de Parcelas</h5>
               <ul className="list-group list-group-flush">
                 {parcelas.map(parcela => (
@@ -146,7 +169,10 @@ export default function Mapa() {
                     Humedad: {parcela.humidity}% | Temp: {parcela.temperature}°C | pH: {parcela.ph}<br />
                     <button
                       className="btn btn-sm btn-outline-primary mt-1"
-                      onClick={() => setMapCenter(parcela.position)}
+                      onClick={() => {
+                        setMapCenter(parcela.position);
+                        if (isMobile) setShowPanel(false); // Cerrar panel en móvil al centrar
+                      }}
                     >
                       Centrar en Mapa
                     </button>
@@ -169,11 +195,19 @@ export default function Mapa() {
           )}
 
           {/* Mapa mejorado */}
-          <div className="flex-grow-1 position-relative">
+          <div
+            className="position-relative"
+            style={{
+              height: '100%',
+              width: isMobile ? '100%' : 'calc(100% - 300px)',
+              marginLeft: isMobile ? '0' : (showPanel ? '300px' : '0'),
+              transition: 'margin-left 0.3s ease-in-out'
+            }}
+          >
             <MapContainer
               center={mapCenter}
               zoom={13}
-              style={{ height: '100%', width: '100%', borderRadius: '10px', boxShadow: '0 4px 8px rgba(0,0,0,0.1)' }}
+              style={{ height: '100%', width: '100%', borderRadius: isMobile ? '0' : '10px', boxShadow: '0 4px 8px rgba(0,0,0,0.1)' }}
               zoomControl={true}
               scrollWheelZoom={true}
               aria-label="Mapa interactivo de AgroSense"

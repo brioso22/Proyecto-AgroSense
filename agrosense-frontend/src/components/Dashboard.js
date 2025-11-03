@@ -7,7 +7,7 @@ export default function Dashboard() {
   const [loadingData, setLoadingData] = useState(true);
   const [error, setError] = useState(null);
 
-  const API_URL = 'http://127.0.0.1:8000/api/parcels/';
+  const API_URL = 'http://192.168.0.12:8000/api/parcels/';
 
   // 🔹 Función para obtener datos del usuario logeado
   const fetchData = async () => {

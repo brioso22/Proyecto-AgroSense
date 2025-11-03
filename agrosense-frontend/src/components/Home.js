@@ -1,11 +1,13 @@
 import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import 'bootstrap/dist/css/bootstrap.min.css';
+import { Navbar, Nav, Container, NavDropdown } from 'react-bootstrap';
 import logo from './assets/logo.png';
 import Dashboard from './Dashboard';
 
 export default function Home() {
     const [userPhoto, setUserPhoto] = useState(null);
+    const [expanded, setExpanded] = useState(false); // Estado para controlar collapse
 
     // Cargar la foto del usuario desde localStorage
     useEffect(() => {
@@ -43,52 +45,44 @@ export default function Home() {
         <div className="min-vh-100 d-flex flex-column bg-light">
 
             {/* Navbar */}
-            <nav className="navbar navbar-expand-lg navbar-white bg-white shadow-sm sticky-top py-2">
-                <div className="container">
+            <Navbar expanded={expanded} expand="lg" bg="white" variant="light" className="shadow-sm sticky-top py-2">
+                <Container>
                     {/* Logo */}
-                    <Link className="navbar-brand d-flex align-items-center" to="/Home">
+                    <Navbar.Brand as={Link} to="/Home" className="d-flex align-items-center">
                         <img src={logo} alt="AgroSense Logo" style={{ height: '35px', marginRight: '10px' }} />
                         <span className="fw-bold text-success fs-5">AgroSense</span>
-                    </Link>
+                    </Navbar.Brand>
 
-                    {/* Botón hamburguesa */}
-                    <button
-                        className="navbar-toggler border-0"
-                        type="button"
-                        data-bs-toggle="collapse"
-                        data-bs-target="#navbarNav"
-                        aria-controls="navbarNav"
-                        aria-expanded="false"
-                        aria-label="Toggle navigation"
-                    >
-                        <span className="navbar-toggler-icon"></span>
-                    </button>
+                    {/* Toggle para móvil */}
+                    <Navbar.Toggle aria-controls="basic-navbar-nav" onClick={() => setExpanded(!expanded)} />
 
-                    <div className="collapse navbar-collapse justify-content-end" id="navbarNav">
-                        <ul className="navbar-nav align-items-center">
+                    <Navbar.Collapse id="basic-navbar-nav" className="justify-content-end">
+                        <Nav className="align-items-center">
                             {navbarSections.map((sec, idx) => (
-                                <li key={idx} className="nav-item mx-1 mx-md-2">
-                                    <Link className="nav-link text-success fw-semibold" to={sec.link}>
-                                        {sec.title}
-                                    </Link>
-                                </li>
+                                <Nav.Link
+                                    as={Link}
+                                    to={sec.link}
+                                    key={idx}
+                                    className="text-success fw-semibold mx-1 mx-md-2"
+                                    onClick={() => setExpanded(false)} // Cierra el collapse al hacer click
+                                >
+                                    {sec.title}
+                                </Nav.Link>
                             ))}
 
                             {/* Foto de usuario como link al perfil */}
-                            <li className="nav-item ms-3">
-                                <Link to="/Perfil">
-                                    <img
-                                        src={userPhoto || '/default-avatar.png'} // fallback si no hay foto
-                                        alt="Usuario"
-                                        className="rounded-circle border border-2"
-                                        style={{ width: '40px', height: '40px', objectFit: 'cover' }}
-                                    />
-                                </Link>
-                            </li>
-                        </ul>
-                    </div>
-                </div>
-            </nav>
+                            <Nav.Link as={Link} to="/Perfil" className="ms-3 p-0" onClick={() => setExpanded(false)}>
+                                <img
+                                    src={userPhoto || '/default-avatar.png'} // fallback si no hay foto
+                                    alt="Usuario"
+                                    className="rounded-circle border border-2"
+                                    style={{ width: '40px', height: '40px', objectFit: 'cover' }}
+                                />
+                            </Nav.Link>
+                        </Nav>
+                    </Navbar.Collapse>
+                </Container>
+            </Navbar>
 
             {/* Contenido principal */}
             <main className="container flex-grow-1 py-3 py-md-5">
