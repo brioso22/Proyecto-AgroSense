@@ -30,7 +30,6 @@ export default function Login() {
   };
 
   const passwordErrors = isRegister ? getPasswordErrors(password) : [];
-
   const validatePassword = (pwd) => passwordErrors.length === 0;
 
   const isFormValid = isRegister
@@ -84,10 +83,14 @@ export default function Login() {
         setShowPassword(false);
         setShowConfirmPassword(false);
       } else {
-        // Ejemplo: función de login
+        // Login
         const res = await api.post('token/', { username, password });
         const token = res.data.access;
+
+        // Guardar token y username en localStorage
         localStorage.setItem('authToken', token);
+        localStorage.setItem('username', username); // 👈 clave importante para Home
+
         console.log('Token guardado ✅');
         navigate('/home');
       }

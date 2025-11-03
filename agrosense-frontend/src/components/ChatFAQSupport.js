@@ -1,9 +1,11 @@
 import React, { useState } from "react";
 import emailjs from "emailjs-com";
-import 'bootstrap/dist/css/bootstrap.min.css'; // Asegúrate de importar Bootstrap
+import { Link } from "react-router-dom";
+import 'bootstrap/dist/css/bootstrap.min.css'; 
+import logo from './assets/logo.png'; // Ajusta la ruta si es necesario
 
 const faqs = [
-  // --- CUENTA Y PERFIL ---
+ // --- CUENTA Y PERFIL ---
   {
     pregunta: "¿Cómo creo mi cuenta en AgroSense?",
     respuesta: "Puedes registrarte desde nuestra página web o aplicación. Solo necesitas tu correo electrónico, crear una contraseña y proporcionar algunos datos básicos."
@@ -68,6 +70,8 @@ function ChatFAQSupport() {
   const [enviado, setEnviado] = useState(false);
   const [buscar, setBuscar] = useState("");
 
+  const userPhoto = localStorage.getItem('photo_' + localStorage.getItem('username')) || '/default-avatar.png';
+
   // Filtrado de preguntas según búsqueda
   const preguntasFiltradas = faqs.filter(faq =>
     faq.pregunta.toLowerCase().includes(buscar.toLowerCase())
@@ -79,17 +83,16 @@ function ChatFAQSupport() {
 
     emailjs
       .send(
-        "service_mpp131y",     // Service ID
-        "template_bksq9ap",    //  Template ID
+        "service_mpp131y",
+        "template_bksq9ap",
         templateParams,
-        "u9DECTQI7nclvav_G"   //  Public Key
+        "u9DECTQI7nclvav_G"
       )
       .then(() => {
         setEnviado(true);
         setNombre("");
         setEmail("");
         setMensaje("");
-        // Ocultar el mensaje de éxito después de 5 segundos
         setTimeout(() => setEnviado(false), 5000);
       })
       .catch((err) => alert("Error al enviar: " + err.text));
@@ -97,12 +100,50 @@ function ChatFAQSupport() {
 
   return (
     <div className="min-vh-100 d-flex flex-column bg-light">
-      {/* Header similar al Home */}
-      <header className="bg-white shadow-sm py-3">
+      {/* Navbar */}
+      <nav className="navbar navbar-expand-lg navbar-white bg-white shadow-sm sticky-top py-2 mb-4">
         <div className="container">
-          <h1 className="text-center text-success fw-bold mb-0">Centro de Ayuda</h1>
+          <Link className="navbar-brand d-flex align-items-center" to="/home">
+            <img src={logo} alt="AgroSense Logo" style={{ height: '35px', marginRight: '10px' }} />
+            <span className="fw-bold text-success fs-5">AgroSense</span>
+          </Link>
+
+          <button
+            className="navbar-toggler"
+            type="button"
+            data-bs-toggle="collapse"
+            data-bs-target="#navbarNav"
+            aria-controls="navbarNav"
+            aria-expanded="false"
+            aria-label="Toggle navigation"
+          >
+            <span className="navbar-toggler-icon"></span>
+          </button>
+
+          <div className="collapse navbar-collapse" id="navbarNav">
+            <ul className="navbar-nav me-auto mb-2 mb-lg-0">
+
+              <li className="nav-item">
+                <Link className="nav-link text-success fw-semibold" to="/Plans">Planes</Link>
+              </li>
+              <li className="nav-item">
+                <Link className="nav-link text-success fw-semibold" to="/Mapa">Mapa</Link>
+              </li>
+            </ul>
+
+            <div className="d-flex align-items-center ms-auto">
+              <Link to="/Perfil">
+                <img
+                  src={userPhoto}
+                  alt="Usuario"
+                  className="rounded-circle border border-2"
+                  style={{ width: '40px', height: '40px', objectFit: 'cover' }}
+                />
+              </Link>
+            </div>
+          </div>
         </div>
-      </header>
+      </nav>
 
       {/* Contenido principal */}
       <main className="container flex-grow-1 py-4">
@@ -119,9 +160,9 @@ function ChatFAQSupport() {
           </div>
         </div>
 
-        {/* Contenedor principal: FAQs y Formulario */}
+        {/* Sección principal: FAQs y Formulario */}
         <div className="row g-4">
-          {/* Sección de preguntas y respuestas */}
+          {/* FAQs */}
           <div className="col-12 col-lg-6">
             <h3 className="text-success fw-bold mb-3">Preguntas Frecuentes</h3>
             {preguntasFiltradas.length > 0 ? (
@@ -140,7 +181,7 @@ function ChatFAQSupport() {
             )}
           </div>
 
-          {/* Formulario de envío de nuevas preguntas */}
+          {/* Formulario */}
           <div className="col-12 col-lg-6">
             <div className="card shadow-sm border-0 bg-gradient-primary" style={{ background: 'linear-gradient(135deg, #007bff, #6610f2)' }}>
               <div className="card-body text-white">
@@ -194,7 +235,7 @@ function ChatFAQSupport() {
         </div>
       </main>
 
-      {/* Footer similar al Home */}
+      {/* Footer */}
       <footer className="bg-white text-center py-3 mt-auto shadow-sm">
         <small className="text-muted fw-semibold">
           © {new Date().getFullYear()} AgroSense | Centro de Ayuda | Desarrollado con ❤️ para agricultores

@@ -1,40 +1,57 @@
-import React from 'react'; // Importar React es buena práctica
-import { Link, useNavigate } from 'react-router-dom';
-
+import React, { useEffect, useState } from 'react';
+import { Link } from 'react-router-dom';
 import 'bootstrap/dist/css/bootstrap.min.css';
-
 import logo from './assets/logo.png';
 import Dashboard from './Dashboard';
 
 export default function Home() {
-    const navigate = useNavigate();
+    const [userPhoto, setUserPhoto] = useState(null);
 
-    // Función para manejar el logout
-    const handleLogout = () => {
-        // Limpiar el token de autenticación
-        localStorage.removeItem('authToken');
+    // Cargar la foto del usuario desde localStorage
+    useEffect(() => {
+        const username = localStorage.getItem('username');
+        if (username) {
+            const photo = localStorage.getItem(`photo_${username}`);
+            if (photo) setUserPhoto(photo);
+        }
+    }, []);
 
-        // Redirigir a la página de login o a la ruta principal
-        // El endpoint '/logout' no suele ser una ruta de frontend válida,
-        // por lo general se redirige a la página de inicio de sesión ('/')
-        navigate('/logout'); 
-    };
+    // Secciones de la navbar (sin Perfil, que será la foto)
+    const navbarSections = [
+        { title: 'Chat y Soporte', link: '/ChatFAQSupport' },
+    ];
+
+    // Secciones principales
+    const mainSections = [
+        {
+            title: 'Mapa Interactivo',
+            description: 'Visualiza tus terrenos y sensores en tiempo real.',
+            icon: '🗺️',
+            link: '/Mapa',
+            bgGradient: 'linear-gradient(135deg, #007bff, #17a2b8)',
+        },
+        {
+            title: 'Planes de Parcelas',
+            description: 'Adquiere y gestiona planes para tus parcelas agrícolas.',
+            icon: '📦',
+            link: '/Plans',
+            bgGradient: 'linear-gradient(135deg, #ffc107, #fd7e14)',
+        },
+    ];
 
     return (
-        // 1. Contenedor principal para la estructura de la página
-        // d-flex flex-column y min-vh-100 aseguran que el footer esté abajo.
         <div className="min-vh-100 d-flex flex-column bg-light">
 
-            {/* Navbar mejorado */}
-            <nav className="navbar navbar-expand-lg navbar-light bg-white shadow-sm sticky-top">
-                <div className="container"> 
-                    {/* Contenido de la marca y logo */}
-                    <Link className="navbar-brand d-flex align-items-center" to="/home">
-                        <img src={logo} alt="AgroSense Logo" style={{ height: '30px', marginRight: '8px' }} />
-                        <span className="fw-bold text-success">AgroSense</span>
+            {/* Navbar */}
+            <nav className="navbar navbar-expand-lg navbar-white bg-white shadow-sm sticky-top py-2">
+                <div className="container">
+                    {/* Logo */}
+                    <Link className="navbar-brand d-flex align-items-center" to="/Home">
+                        <img src={logo} alt="AgroSense Logo" style={{ height: '35px', marginRight: '10px' }} />
+                        <span className="fw-bold text-success fs-5">AgroSense</span>
                     </Link>
-                    
-                    {/* Botón Toggler para móviles */}
+
+                    {/* Botón hamburguesa */}
                     <button
                         className="navbar-toggler border-0"
                         type="button"
@@ -47,31 +64,36 @@ export default function Home() {
                         <span className="navbar-toggler-icon"></span>
                     </button>
 
-                    {/* Elementos colapsables (Links y Logout) */}
                     <div className="collapse navbar-collapse justify-content-end" id="navbarNav">
-                        <ul className="navbar-nav align-items-center"> {/* align-items-center para centrar el botón */}
-                            <li className="nav-item">
-                                <Link className="nav-link text-success fw-semibold" to="/perfil">Perfil</Link>
-                            </li>
-                            <li className="nav-item">
-                                <Link className="nav-link text-success fw-semibold" to="/mapa">Mapa</Link>
-                            </li>
-                            <li className="nav-item ms-lg-3"> {/* Margen solo en pantallas grandes */}
-                                <button
-                                    className="btn btn-outline-danger btn-sm"
-                                    onClick={handleLogout}
-                                    title="Cerrar sesión"
-                                >
-                                    🚪 Logout
-                                </button>
+                        <ul className="navbar-nav align-items-center">
+                            {navbarSections.map((sec, idx) => (
+                                <li key={idx} className="nav-item mx-1 mx-md-2">
+                                    <Link className="nav-link text-success fw-semibold" to={sec.link}>
+                                        {sec.title}
+                                    </Link>
+                                </li>
+                            ))}
+
+                            {/* Foto de usuario como link al perfil */}
+                            <li className="nav-item ms-3">
+                                <Link to="/Perfil">
+                                    <img
+                                        src={userPhoto || '/default-avatar.png'} // fallback si no hay foto
+                                        alt="Usuario"
+                                        className="rounded-circle border border-2"
+                                        style={{ width: '40px', height: '40px', objectFit: 'cover' }}
+                                    />
+                                </Link>
                             </li>
                         </ul>
                     </div>
-                </div> 
+                </div>
             </nav>
 
             {/* Contenido principal */}
             <main className="container flex-grow-1 py-3 py-md-5">
+
+                {/* Bienvenida */}
                 <div className="text-center mb-4 mb-md-5">
                     <h1 className="fw-bold text-success display-4 display-md-3 mb-3">Bienvenido a AgroSense 🌿</h1>
                     <p className="text-muted fs-5 fs-md-4 lead">
@@ -79,36 +101,23 @@ export default function Home() {
                     </p>
                 </div>
 
-                {/* Secciones de acceso */}
+                {/* Cuadros principales: Mapa y Planes */}
                 <div className="row g-3 g-md-4 justify-content-center mb-4 mb-md-5">
-                    <div className="col-12 col-sm-6 col-md-4">
-                        <div className="card shadow-sm border-0 h-100 text-center bg-gradient-success text-white" style={{ background: 'linear-gradient(135deg, #28a745, #20c997)' }}>
-                            <div className="card-body d-flex flex-column p-4">
-                                <div className="mb-3" style={{ fontSize: '3rem' }}>👤</div>
-                                <h5 className="card-title fw-bold">Perfil de Usuario</h5>
-                                <p className="card-text flex-grow-1">
-                                    Accede a tu información y configuración personal.
-                                </p>
-                                <Link to="/perfil" className="btn btn-light w-100 mt-auto fw-semibold">Ir al Perfil</Link>
+                    {mainSections.map((sec, idx) => (
+                        <div key={idx} className="col-12 col-sm-6 col-md-4">
+                            <div className="card shadow-sm border-0 h-100 text-center text-white" style={{ background: sec.bgGradient }}>
+                                <div className="card-body d-flex flex-column p-4">
+                                    <div className="mb-3" style={{ fontSize: '3rem' }}>{sec.icon}</div>
+                                    <h5 className="card-title fw-bold">{sec.title}</h5>
+                                    <p className="card-text flex-grow-1">{sec.description}</p>
+                                    <Link to={sec.link} className="btn btn-light w-100 mt-auto fw-semibold">Abrir</Link>
+                                </div>
                             </div>
                         </div>
-                    </div>
-
-                    <div className="col-12 col-sm-6 col-md-4">
-                        <div className="card shadow-sm border-0 h-100 text-center bg-gradient-info text-white" style={{ background: 'linear-gradient(135deg, #007bff, #17a2b8)' }}>
-                            <div className="card-body d-flex flex-column p-4">
-                                <div className="mb-3" style={{ fontSize: '3rem' }}>🗺️</div>
-                                <h5 className="card-title fw-bold">Mapa Interactivo</h5>
-                                <p className="card-text flex-grow-1">
-                                    Visualiza tus terrenos y sensores en tiempo real.
-                                </p>
-                                <Link to="/mapa" className="btn btn-light w-100 mt-auto fw-semibold">Abrir Mapa</Link>
-                            </div>
-                        </div>
-                    </div>
+                    ))}
                 </div>
 
-                {/* Dashboard integrado */}
+                {/* Dashboard */}
                 <div className="mt-4 mt-md-5">
                     <h4 className="fw-bold text-success mb-3 text-center display-5 display-md-4">Panel de Resumen 📈</h4>
                     <div className="bg-white shadow rounded border p-2 p-md-3">

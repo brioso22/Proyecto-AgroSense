@@ -1,7 +1,8 @@
 import { useEffect, useState } from 'react';
 import api from '../api';
 import 'bootstrap/dist/css/bootstrap.min.css';
-import { FaUserCircle, FaEdit, FaSave, FaTimes } from 'react-icons/fa';
+import { FaUserCircle, FaEdit, FaSave, FaTimes, FaSignOutAlt, FaArrowLeft } from 'react-icons/fa';
+import { useNavigate } from 'react-router-dom';
 
 export default function Profile() {
   const [user, setUser] = useState(null);
@@ -17,12 +18,14 @@ export default function Profile() {
   });
 
   const token = localStorage.getItem('authToken');
+  const navigate = useNavigate();
 
   useEffect(() => {
     if (!token) {
       setError('No estás autenticado');
       return;
     }
+
     const fetchProfile = async () => {
       try {
         const res = await api.get('users/me/', {
@@ -31,19 +34,25 @@ export default function Profile() {
         setUser(res.data);
         setFormData(res.data);
 
-        // Cargar foto asociada al usuario
         const savedPhoto = localStorage.getItem(`photo_${res.data.username}`);
-        if (savedPhoto) setPhoto(savedPhoto);
+        if (savedPhoto) {
+          setPhoto(savedPhoto);
+        } else {
+          const defaultPhoto = '/default-avatar.png';
+          setPhoto(defaultPhoto);
+          localStorage.setItem(`photo_${res.data.username}`, defaultPhoto);
+        }
+
+        localStorage.setItem('username', res.data.username);
       } catch (err) {
         setError('Error al cargar el perfil');
       }
     };
+
     fetchProfile();
   }, [token]);
 
-  const handleChange = (e) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
-  };
+  const handleChange = (e) => setFormData({ ...formData, [e.target.name]: e.target.value });
 
   const handleSave = async () => {
     try {
@@ -69,39 +78,63 @@ export default function Profile() {
     }
   };
 
+  const handleLogout = () => {
+    localStorage.removeItem('authToken');
+    localStorage.removeItem('username');
+    navigate('/');
+  };
+
+  const handleBack = () => navigate('/home'); // Retroceder a Home
+
   if (error) return <div className="alert alert-danger mt-3">{error}</div>;
   if (!user) return <div className="text-center mt-5">Cargando...</div>;
 
   return (
     <div className="container mt-5 mb-5">
       <div className="card shadow-lg border-0 rounded-4 p-4 p-md-5 bg-light">
-        <div className="text-center mb-4">
-          {/* Foto siempre visible */}
-          {photo ? (
-            <img
-              src={photo}
-              alt="Perfil"
-              className="rounded-circle shadow-sm"
-              style={{ width: '120px', height: '120px', objectFit: 'cover' }}
-            />
-          ) : (
-            <FaUserCircle size={120} className="text-success mb-2" />
-          )}
-
-          {/* Input solo si está en edición */}
-          {isEditing && (
-            <div className="mt-2">
-              <input
-                type="file"
-                accept="image/*"
-                className="form-control form-control-sm"
-                onChange={handlePhotoChange}
+        <div className="d-flex justify-content-between align-items-center mb-4">
+          <div className="text-center flex-grow-1">
+            {photo ? (
+              <img
+                src={photo}
+                alt="Perfil"
+                className="rounded-circle shadow-sm"
+                style={{ width: '120px', height: '120px', objectFit: 'cover' }}
               />
-            </div>
-          )}
+            ) : (
+              <FaUserCircle size={120} className="text-success mb-2" />
+            )}
+            {isEditing && (
+              <div className="mt-2">
+                <input
+                  type="file"
+                  accept="image/*"
+                  className="form-control form-control-sm"
+                  onChange={handlePhotoChange}
+                />
+              </div>
+            )}
+            <h2 className="fw-bold text-success mt-2">Perfil de Usuario</h2>
+            <p className="text-muted">Gestiona tu información personal y configuración</p>
+          </div>
 
-          <h2 className="fw-bold text-success mt-2">Perfil de Usuario</h2>
-          <p className="text-muted">Gestiona tu información personal y configuración</p>
+          {/* Botones de acción: retroceso y logout */}
+          <div className="d-flex flex-column gap-2">
+            <button
+              className="btn btn-outline-primary d-flex align-items-center gap-2"
+              onClick={handleBack}
+              title="Volver a Home"
+            >
+              <FaArrowLeft /> Home
+            </button>
+            <button
+              className="btn btn-outline-danger d-flex align-items-center gap-2"
+              onClick={handleLogout}
+              title="Cerrar sesión"
+            >
+              <FaSignOutAlt /> Cerrar sesión
+            </button>
+          </div>
         </div>
 
         {isEditing ? (
@@ -157,4 +190,3 @@ export default function Profile() {
     </div>
   );
 }
-

@@ -1,7 +1,7 @@
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import Login from './components/Login';
 import Dashboard from './components/Dashboard';
-import ProtectedRoute from './components/ProtectedRoute';
+import ProtectedRoute from './ProtectedRoute'; // <- tu PrivateRoute.js
 import Home from './components/Home';
 import PerfilUsuario from './components/PerfilUsuario';
 import Mapa from './components/Mapa';
@@ -13,8 +13,10 @@ function App() {
   return (
     <BrowserRouter>
       <Routes>
+        {/* Ruta pública: Login */}
         <Route path="/" element={<Login />} />
-        
+
+        {/* Rutas privadas */}
         <Route 
           path="/Dashboard" 
           element={
@@ -23,7 +25,6 @@ function App() {
             </ProtectedRoute>
           } 
         />
-        
         <Route 
           path="/Home" 
           element={
@@ -32,7 +33,6 @@ function App() {
             </ProtectedRoute>
           } 
         />
-        
         <Route 
           path="/Logout" 
           element={
@@ -41,7 +41,6 @@ function App() {
             </ProtectedRoute>
           } 
         />
-        
         <Route 
           path="/Perfil" 
           element={
@@ -50,7 +49,6 @@ function App() {
             </ProtectedRoute>
           } 
         />
-        
         <Route 
           path="/Mapa" 
           element={
@@ -59,7 +57,6 @@ function App() {
             </ProtectedRoute>
           } 
         />
-        
         <Route 
           path="/Plans" 
           element={
@@ -68,9 +65,6 @@ function App() {
             </ProtectedRoute>
           } 
         />
-
-        {/* Nueva ruta de chat de soporte */}
-
         <Route 
           path="/ChatFAQSupport" 
           element={
@@ -80,7 +74,6 @@ function App() {
           } 
         />
       </Routes>
-      
     </BrowserRouter>
   );
 }
