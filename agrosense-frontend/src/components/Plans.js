@@ -17,87 +17,79 @@ export default function Plans() {
   const [alertVariant, setAlertVariant] = useState('info');
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
+  const [deleting, setDeleting] = useState(false);
 
-  const API_URL = 'http://127.0.0.1:8000/api/plans/';
   const USERPLAN_URL = 'http://127.0.0.1:8000/api/userplans/';
 
-  // Cargar planes y plan de usuario
+  // Planes disponibles (simulados o cargados desde backend)
+  const staticPlans = [
+    {
+      id: 1,
+      name: 'Plan Básico',
+      description: 'Monitoreo básico, alertas meteorológicas y reportes semanales.',
+      price: 19.99,
+      coverage_area_km2: 5,
+    },
+    {
+      id: 2,
+      name: 'Plan Premium',
+      description: 'Monitoreo avanzado, análisis de suelo, y reportes diarios.',
+      price: 49.99,
+      coverage_area_km2: 20,
+    },
+    {
+      id: 3,
+      name: 'Plan Profesional',
+      description: 'Análisis en tiempo real, imágenes satelitales y soporte técnico 24/7.',
+      price: 99.99,
+      coverage_area_km2: 50,
+    },
+  ];
+
+  // Obtener plan actual del usuario
   useEffect(() => {
-    const fetchData = async () => {
+    const fetchUserPlan = async () => {
       const token = localStorage.getItem('authToken');
+      if (!token) {
+        setPlans(staticPlans);
+        setLoading(false);
+        return;
+      }
+
       try {
-        const plansRes = await axios.get(API_URL);
-        let userPlanRes = null;
-
-        if (token) {
-          const res = await axios.get(USERPLAN_URL, {
-            headers: { Authorization: `Bearer ${token}` }
-          });
-          // Si DRF devuelve lista o un solo objeto
-          userPlanRes = Array.isArray(res.data) ? res.data[0] : res.data;
-        }
-
-        setPlans(plansRes.data);
-        setUserPlan(userPlanRes || null);
+        const res = await axios.get(USERPLAN_URL, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        const planData = Array.isArray(res.data) ? res.data[0] : res.data;
+        setUserPlan(planData || null);
       } catch (err) {
-        console.error('Error cargando datos:', err);
-        setMessage('Error al cargar los datos. Inténtalo de nuevo.');
-        setAlertVariant('danger');
+        console.error('Error al obtener plan del usuario:', err);
       } finally {
+        setPlans(staticPlans);
         setLoading(false);
       }
     };
-
-    fetchData();
+    fetchUserPlan();
   }, []);
 
-  // Manejar compra
+  // Abrir modal de compra
   const handlePurchase = (plan) => {
     setSelectedPlan(plan);
     setShowPayment(true);
   };
 
-  // Cancelar plan
-  const handleCancelPlan = async () => {
-    const token = localStorage.getItem('authToken');
-    if (!userPlan) return;
-
-    if (!window.confirm('¿Seguro que deseas cancelar tu plan actual? Esta acción no se puede deshacer.')) return;
-
-    setSubmitting(true);
-    try {
-      await axios.delete(`${USERPLAN_URL}${userPlan.id}/`, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
-      setUserPlan(null);
-      setMessage('Plan cancelado exitosamente.');
-      setAlertVariant('success');
-    } catch (err) {
-      console.error(err);
-      setMessage('Error al cancelar el plan. Inténtalo de nuevo.');
-      setAlertVariant('danger');
-    } finally {
-      setSubmitting(false);
-    }
-  };
-
-  // Simulación de pago exitoso
+  // Simular pago
   const handlePaymentSuccess = () => {
     setShowPayment(false);
     setShowModal(true);
   };
 
-  // Cambios en el formulario
-  const handleChange = (e) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
-  };
-
-  // Crear plan de usuario
+  // Enviar nueva suscripción
   const handleSubmit = async (e) => {
     e.preventDefault();
     const token = localStorage.getItem('authToken');
     if (!token) {
-      setMessage('Debes iniciar sesión para adquirir un plan.');
+      setMessage('⚠️ Debes iniciar sesión para adquirir un plan.');
       setAlertVariant('warning');
       return;
     }
@@ -107,29 +99,54 @@ export default function Plans() {
       const res = await axios.post(
         USERPLAN_URL,
         {
-          plan: selectedPlan.id,
+          plan_name: selectedPlan.name,
+          plan_description: selectedPlan.description,
+          plan_price: selectedPlan.price,
+          plan_coverage_area_km2: selectedPlan.coverage_area_km2,
           location_latitude: parseFloat(formData.location_latitude),
           location_longitude: parseFloat(formData.location_longitude),
-          area_m2: parseFloat(formData.area_m2)
+          area_m2: parseFloat(formData.area_m2),
         },
         { headers: { Authorization: `Bearer ${token}` } }
       );
 
       setUserPlan(res.data);
-      setMessage('✅ Plan adquirido exitosamente. Se ha creado tu parcela.');
+      setMessage('✅ Plan adquirido exitosamente.');
       setAlertVariant('success');
       setShowModal(false);
       setFormData({ location_latitude: '', location_longitude: '', area_m2: '' });
     } catch (err) {
-      console.error(err);
-      setMessage('❌ Error al adquirir el plan. Verifica los datos o intenta de nuevo.');
+      console.error(err.response?.data || err);
+      setMessage('❌ Error al adquirir el plan. Intenta nuevamente.');
       setAlertVariant('danger');
     } finally {
       setSubmitting(false);
     }
   };
 
-  const dismissAlert = () => setMessage(null);
+  // Cancelar plan (DELETE)
+  const handleCancelPlan = async () => {
+    const token = localStorage.getItem('authToken');
+    if (!token || !userPlan) return;
+
+    if (!window.confirm('¿Seguro que deseas cancelar tu plan actual?')) return;
+
+    setDeleting(true);
+    try {
+      await axios.delete(`${USERPLAN_URL}${userPlan.id}/`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      setUserPlan(null);
+      setMessage('🗑️ Tu plan ha sido cancelado correctamente.');
+      setAlertVariant('info');
+    } catch (err) {
+      console.error(err.response?.data || err);
+      setMessage('❌ Error al cancelar el plan.');
+      setAlertVariant('danger');
+    } finally {
+      setDeleting(false);
+    }
+  };
 
   if (loading) {
     return (
@@ -145,7 +162,7 @@ export default function Plans() {
       <h2 className="text-success text-center mb-4 fw-bold">🌿 Gestión de Planes de Parcelas</h2>
 
       {message && (
-        <Alert variant={alertVariant} dismissible onClose={dismissAlert} className="text-center">
+        <Alert variant={alertVariant} dismissible onClose={() => setMessage(null)} className="text-center">
           {message}
         </Alert>
       )}
@@ -157,24 +174,18 @@ export default function Plans() {
           {userPlan ? (
             <Card className="shadow-sm border-success bg-light">
               <Card.Body>
-                <Row className="align-items-center">
-                  <Col xs={12} md={8}>
-                    <Card.Title className="text-success">{userPlan.plan_name}</Card.Title>
-                    <p className="mb-1"><strong>Plan ID:</strong> {userPlan.plan}</p>
-                    <p className="mb-1"><strong>Ubicación:</strong> Lat {userPlan.location_latitude}, Lon {userPlan.location_longitude}</p>
-                    <p className="mb-1"><strong>Área:</strong> {userPlan.area_m2} m²</p>
-                  </Col>
-                  <Col xs={12} md={4} className="text-end">
-                    <Button
-                      variant="outline-danger"
-                      onClick={handleCancelPlan}
-                      disabled={submitting}
-                      className="w-100 w-md-auto"
-                    >
-                      {submitting ? <Spinner as="span" animation="border" size="sm" /> : 'Cancelar Plan'}
-                    </Button>
-                  </Col>
-                </Row>
+                <Card.Title className="text-success">{userPlan.plan_name}</Card.Title>
+                <p><strong>Precio:</strong> ${userPlan.plan_price}</p>
+                <p><strong>Área:</strong> {userPlan.area_m2} m²</p>
+                <p><strong>Ubicación:</strong> Lat {userPlan.location_latitude}, Lon {userPlan.location_longitude}</p>
+                <Button
+                  variant="outline-danger"
+                  className="mt-2"
+                  onClick={handleCancelPlan}
+                  disabled={deleting}
+                >
+                  {deleting ? 'Cancelando...' : 'Cancelar Plan'}
+                </Button>
               </Card.Body>
             </Card>
           ) : (
@@ -187,35 +198,26 @@ export default function Plans() {
 
       {/* Planes disponibles */}
       <Row>
-        <Col xs={12}>
-          <h4 className="text-success mb-3">🛒 Planes Disponibles</h4>
-          <Row>
-            {plans
-              .filter(plan => !userPlan || plan.id !== userPlan.plan)
-              .map(plan => (
-                <Col xs={12} sm={6} lg={4} key={plan.id} className="mb-4">
-                  <Card className="shadow-sm h-100 border-0" style={{ borderRadius: '10px' }}>
-                    <Card.Body className="d-flex flex-column">
-                      <Card.Title className="text-success fw-bold">{plan.name}</Card.Title>
-                      <Card.Text className="flex-grow-1">{plan.description}</Card.Text>
-                      <div className="mb-3">
-                        <p className="mb-1"><strong>Área:</strong> {plan.coverage_area_km2} km²</p>
-                        <p className="mb-0"><strong>Precio:</strong> <Badge bg="primary">${plan.price}</Badge></p>
-                      </div>
-                      <Button
-                        variant="success"
-                        onClick={() => handlePurchase(plan)}
-                        className="w-100 mt-auto"
-                        disabled={!!userPlan}
-                      >
-                        {userPlan ? 'Ya tienes un plan' : 'Adquirir'}
-                      </Button>
-                    </Card.Body>
-                  </Card>
-                </Col>
-              ))}
-          </Row>
-        </Col>
+        <h4 className="text-success mb-3">🛒 Planes Disponibles</h4>
+        {plans.map((plan) => (
+          <Col xs={12} sm={6} lg={4} key={plan.id} className="mb-4">
+            <Card className="shadow-sm h-100 border-0">
+              <Card.Body className="d-flex flex-column">
+                <Card.Title className="text-success fw-bold">{plan.name}</Card.Title>
+                <Card.Text>{plan.description}</Card.Text>
+                <p><strong>Cobertura:</strong> {plan.coverage_area_km2} km²</p>
+                <p><strong>Precio:</strong> <Badge bg="primary">${plan.price}</Badge></p>
+                <Button
+                  variant="success"
+                  onClick={() => handlePurchase(plan)}
+                  disabled={!!userPlan}
+                >
+                  {userPlan ? 'Ya tienes un plan activo' : 'Adquirir'}
+                </Button>
+              </Card.Body>
+            </Card>
+          </Col>
+        ))}
       </Row>
 
       {/* Modal de pago */}
@@ -226,7 +228,7 @@ export default function Plans() {
         <Modal.Body className="text-center">
           <p>Estás a punto de adquirir el plan <strong>{selectedPlan?.name}</strong>.</p>
           <p className="fs-5">Monto total: <Badge bg="success">${selectedPlan?.price}</Badge></p>
-          <p className="text-muted">Esta es una simulación de pago. En un entorno real, integrarías con un gateway de pago.</p>
+          <p className="text-muted">Simulación de pago (sin pasarela real).</p>
           <Button variant="success" onClick={handlePaymentSuccess} className="w-100">
             Proceder al Pago
           </Button>
@@ -240,45 +242,34 @@ export default function Plans() {
         </Modal.Header>
         <Modal.Body>
           <Form onSubmit={handleSubmit}>
-            <Row>
-              <Col xs={12} md={6}>
-                <Form.Group className="mb-3">
-                  <Form.Label>Latitud</Form.Label>
-                  <Form.Control
-                    name="location_latitude"
-                    type="number"
-                    step="0.0001"
-                    value={formData.location_latitude}
-                    onChange={handleChange}
-                    required
-                    placeholder="Ej: -12.0464"
-                  />
-                </Form.Group>
-              </Col>
-              <Col xs={12} md={6}>
-                <Form.Group className="mb-3">
-                  <Form.Label>Longitud</Form.Label>
-                  <Form.Control
-                    name="location_longitude"
-                    type="number"
-                    step="0.0001"
-                    value={formData.location_longitude}
-                    onChange={handleChange}
-                    required
-                    placeholder="Ej: -77.0428"
-                  />
-                </Form.Group>
-              </Col>
-            </Row>
+            <Form.Group className="mb-3">
+              <Form.Label>Latitud</Form.Label>
+              <Form.Control
+                name="location_latitude"
+                type="number"
+                value={formData.location_latitude}
+                onChange={(e) => setFormData({ ...formData, location_latitude: e.target.value })}
+                required
+              />
+            </Form.Group>
+            <Form.Group className="mb-3">
+              <Form.Label>Longitud</Form.Label>
+              <Form.Control
+                name="location_longitude"
+                type="number"
+                value={formData.location_longitude}
+                onChange={(e) => setFormData({ ...formData, location_longitude: e.target.value })}
+                required
+              />
+            </Form.Group>
             <Form.Group className="mb-3">
               <Form.Label>Área (m²)</Form.Label>
               <Form.Control
                 name="area_m2"
                 type="number"
                 value={formData.area_m2}
-                onChange={handleChange}
+                onChange={(e) => setFormData({ ...formData, area_m2: e.target.value })}
                 required
-                placeholder="Ej: 1000"
               />
             </Form.Group>
             <Button type="submit" variant="success" className="w-100" disabled={submitting}>

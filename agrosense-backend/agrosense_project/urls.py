@@ -4,7 +4,6 @@ from rest_framework.routers import DefaultRouter
 
 # Importaciones de los ViewSets
 from accounts.views import UserViewSet
-from plans.views import PlanViewSet
 from telemetry.views import DeviceViewSet, TelemetryViewSet
 from parcels.views import ParcelViewSet
 from userplans.views import UserPlanViewSet  # 👈 importa el nuevo ViewSet
@@ -15,7 +14,6 @@ from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 # --- Routers ---
 router = DefaultRouter()
 router.register(r'users', UserViewSet, basename='users')
-router.register(r'plans', PlanViewSet, basename='plans')
 router.register(r'devices', DeviceViewSet, basename='devices')
 router.register(r'telemetry', TelemetryViewSet, basename='telemetry')
 router.register(r'parcels', ParcelViewSet, basename='parcels')
